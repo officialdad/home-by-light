@@ -286,6 +286,8 @@ func _target_at(point: Vector2) -> StringName:
 func _draw() -> void:
 	for id: StringName in _ordered:
 		_draw_hero(id)
+	if hover_id != &"" and _pills.has(hover_id):
+		_draw_plate(hover_id)
 	if _camera_on():
 		_draw_hint()
 
@@ -302,7 +304,7 @@ func _plate_rect(id: StringName) -> Rect2:
 	return Rect2(left, maxf(_body_rect(id).position.y - height - PLATE_GAP, SCREEN_MARGIN), width, height)
 
 
-## Draws a pill and, for the highlighted hero, a name plate and a palm ring. The body stays clear, because the 3D scene shows the highlight as a ground ring.
+## Draws a pill. The body stays clear, because the 3D scene shows the highlight as a ground ring and the plate comes later.
 func _draw_hero(id: StringName) -> void:
 	var active: bool = id == hover_id
 	var spec: Dictionary = HeroTable.get_spec(id)
@@ -316,16 +318,19 @@ func _draw_hero(id: StringName) -> void:
 		var left: float = pill.position.x + PILL_PADDING + slot * (ICON_SIZE + PILL_PADDING + DIVIDER_WIDTH)
 		draw_texture_rect(UiKit.icon(String(weapon["id"])), Rect2(left, pill.position.y + PILL_PADDING, ICON_SIZE, ICON_SIZE), false, Color(weapon["accent"]))
 	draw_rect(Rect2(pill.position.x + pill.size.x * 0.5 - DIVIDER_WIDTH * 0.5, pill.position.y + PILL_PADDING, DIVIDER_WIDTH, ICON_SIZE), Color(1, 1, 1, 0.35))
-	if not active:
-		return
+
+
+## Drawn after every pill, so a neighbour never covers the name. The label has a dark outline instead of a streaky fill, which keeps it readable on the fire glow.
+func _draw_plate(id: StringName) -> void:
 	var plate: Rect2 = _plate_rect(id)
-	draw_style_box(UiKit.brush(Color(0.18, 0.1, 0.32), FOCUS_COLOR, 0.0, hash(id) % 5, false), plate)
+	draw_style_box(UiKit.brush(Color(0.12, 0.06, 0.24, 0.9), FOCUS_COLOR, 0.0, hash(id) % 5, false), plate)
 	var font: Font = UiKit.font()
-	var text: String = String(spec["name"])
-	var text_width: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, PLATE_FONT_SIZE).x
-	draw_string(font, Vector2(plate.get_center().x - text_width * 0.5, plate.position.y + PLATE_PADDING.y + font.get_ascent(PLATE_FONT_SIZE)), text, HORIZONTAL_ALIGNMENT_LEFT, -1, PLATE_FONT_SIZE, FOCUS_COLOR)
-	var ring_centre: Vector2 = Vector2(plate.end.x + RING_RADIUS * 0.6 + 12.0, plate.get_center().y)
+	var text: String = String(HeroTable.get_spec(id)["name"])
+	var at := Vector2(plate.get_center().x - font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, PLATE_FONT_SIZE).x * 0.5, plate.position.y + PLATE_PADDING.y + font.get_ascent(PLATE_FONT_SIZE))
+	draw_string_outline(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, PLATE_FONT_SIZE, 8, Color(0.05, 0.02, 0.12))
+	draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, PLATE_FONT_SIZE, FOCUS_COLOR)
 	if palm_progress > 0.0 and chosen_id == &"":
+		var ring_centre := Vector2(plate.end.x + RING_RADIUS * 0.6 + 12.0, plate.get_center().y)
 		draw_arc(ring_centre, RING_RADIUS * 0.6, 0.0, TAU, 40, Color(0.0, 0.0, 0.0, 0.7), RING_WIDTH + 4.0)
 		draw_arc(ring_centre, RING_RADIUS * 0.6, -PI * 0.5, -PI * 0.5 + TAU * palm_progress, 40, PROGRESS_COLOR, RING_WIDTH)
 	if id == chosen_id:

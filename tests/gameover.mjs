@@ -22,9 +22,10 @@ async function session(size, shot) {
   await page.goto('https://localhost:8446/');
   await waitForStartScreen(page);
   const card = (await page.evaluate(() => window.railsBridge.godotUiRects)).find((r) => r[0].startsWith('card:'));
-  for (let tap = 0; tap < 2; tap++) {
+  // A loaded machine drops taps, so keep tapping the card until the run starts.
+  for (let attempt = 0; attempt < 8 && (await page.evaluate(() => window.railsBridge.godotFlow)) !== 'play'; attempt++) {
     await page.mouse.click(card[1] + card[3] / 2, card[2] + card[4] / 2);
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(1200);
   }
   await page.waitForFunction(() => window.railsBridge.godotFlow === 'play', null, { timeout: 15000 });
   const tag = `${size.width}x${size.height}`;

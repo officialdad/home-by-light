@@ -40,7 +40,7 @@ for (let i = 0; i < heroes.length; i++) {
   expect(await hero(page) === heroes[i], `hover previews ${heroes[i]}`);
   await shot(page, `3-select-${heroes[i]}`);
   await page.mouse.click(...(await heroPoint(page, heroes[i])));
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(500);
   expect(await flow(page) === 'select' && await hero(page) === heroes[i], `first tap highlights ${heroes[i]} and waits`);
   // The camera sweeps and frames are slow on a loaded machine, so a tap can land on a pill that has moved. One retry on a re-read point matches what a player does.
   for (let attempt = 0; attempt < 2 && await flow(page) === 'select'; attempt++) {

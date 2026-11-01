@@ -39,8 +39,8 @@ const FLAME_RADIUS: float = 0.5
 ## The highlighted hero grows by this share and stands on a warm ring, so the cue never hides the character and needs no colour to read.
 const HIGHLIGHT_SCALE: float = 1.12
 const HIGHLIGHT_RATE: float = 8.0
-const RING_INNER: float = 0.62
-const RING_OUTER: float = 0.82
+const RING_INNER: float = 0.5
+const RING_OUTER: float = 1.0
 const RING_COLOUR: Color = Color(1.0, 0.78, 0.35)
 
 var _heroes: Dictionary[StringName, Node3D] = {}
@@ -125,7 +125,7 @@ func update(delta: float, camera: Camera3D, portrait: bool) -> void:
 		_heroes[id].scale = _heroes[id].scale.lerp(Vector3.ONE * target, grow)
 		_rings[id].visible = id == _highlight_id
 		var pulse: float = 1.0 + 0.05 * sin(_clock * 4.0)
-		_rings[id].scale = Vector3(pulse, 0.06, pulse)
+		_rings[id].scale = Vector3(pulse, 0.12, pulse)
 	var turn: float = 1.0 - exp(-TURN_RATE * delta)
 	for id: StringName in _heroes:
 		var hero: Node3D = _heroes[id]
@@ -274,6 +274,6 @@ func _build_ring(at: Vector3) -> MeshInstance3D:
 	ring.mesh = mesh
 	add_child(ring)
 	ring.global_position = at + Vector3(0.0, 0.04, 0.0)
-	ring.scale = Vector3(1.0, 0.06, 1.0)
+	ring.scale = Vector3(1.0, 0.12, 1.0)
 	ring.visible = false
 	return ring

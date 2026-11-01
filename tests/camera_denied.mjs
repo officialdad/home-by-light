@@ -1,4 +1,4 @@
-// Usage: node tests/camera_denied.mjs. A rejected getUserMedia (as in the GamePix iframe) shows a message, and a tap on a hero still starts a run.
+// Usage: node tests/camera_denied.mjs. A rejected getUserMedia (as in the GamePix iframe) shows a message, and two taps on a hero still start a run.
 import { chromium } from 'playwright-core';
 import { heroPoint, buttonPoint, waitForStartScreen } from './start.mjs';
 const args = ['--ignore-certificate-errors', '--enable-unsafe-swiftshader', '--use-gl=angle', '--use-angle=swiftshader'];
@@ -23,8 +23,10 @@ for (const [width, height] of [[1280, 720], [390, 844]]) {
   check(await page.evaluate(() => (window.railsBridge.godotUiRects || []).some((r) => r[0] === 'CameraNotice')), `${width}x${height}: the notice shows on the first screen`);
   check(await page.evaluate(() => window.railsBridge.godotFlow) === 'select', `${width}x${height}: still on the campfire`);
   await page.mouse.click(...(await heroPoint(page, 'sam')));
+  await page.waitForTimeout(600);
+  await page.mouse.click(...(await heroPoint(page, 'sam')));
   await page.waitForFunction(() => window.railsBridge.godotFlow === 'play', null, { timeout: 20000 }).catch(() => {});
-  check(await page.evaluate(() => window.railsBridge.godotFlow) === 'play', `${width}x${height}: a tap on a hero starts the run`);
+  check(await page.evaluate(() => window.railsBridge.godotFlow) === 'play', `${width}x${height}: two taps on a hero start the run`);
   await page.context().close();
 }
 await browser.close();

@@ -60,8 +60,8 @@ const BARRIER_POOL_SIZE: int = 8
 ## Share of barrier spots filled by a wrecked car instead of a traffic barrier.
 const CAR_SHARE: float = 0.4
 ## A car is about 6k triangles, so the low tier keeps fewer in the pool and therefore fewer on screen.
-const CAR_POOL_SIZE_HIGH: int = 6
-const CAR_POOL_SIZE_LOW: int = 2
+const CAR_POOL_SIZE_HIGH: int = 2
+const CAR_POOL_SIZE_LOW: int = 0
 ## Cars use LevelKit.CAR_SCALES, which sizes them against the hero and keeps the body inside one lane of LANE_WIDTH.
 const CAR_YAW_LIMIT: float = 0.1
 const CAR_TIP_CHANCE: float = 0.3
@@ -325,7 +325,7 @@ func _pose_car(holder: Node3D) -> void:
 
 
 func _place_barrier(point: Vector3) -> bool:
-	var pool_nodes: Array[Node3D] = _cars if randf() < CAR_SHARE else _barriers
+	var pool_nodes: Array[Node3D] = _cars if not _cars.is_empty() and randf() < CAR_SHARE else _barriers
 	for barrier: Node3D in pool_nodes:
 		if barrier.visible:
 			continue

@@ -94,7 +94,6 @@ static func _street_sides(baker: LevelBaker, rng: RandomNumberGenerator, glow: f
 	if with_cars and Quality.is_high():
 		var side: float = 1.0 if rng.randf() < 0.5 else -1.0
 		LevelKit.wreck(baker, side * 6.3, -rng.randf_range(10.0, 30.0), side * 0.1, rng)
-		LevelKit.wreck(baker, -side * 6.6, -rng.randf_range(2.0, 38.0), rng.randf_range(-0.5, 0.5), rng, rng.randf() < 0.5)
 
 
 ## Lamps alternate sides every 16 m, which is how the lanes read without any lane lines.

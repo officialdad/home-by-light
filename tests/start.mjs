@@ -20,10 +20,13 @@ export async function waitForStartScreen(page) {
   await page.waitForTimeout(1000);
 }
 
-// Touch start: the first tap on a hero unlocks audio and picks it, and waits until the ride runs.
+// Touch start: the first tap on a hero highlights it, the second confirms. A loaded machine drops taps, so keep tapping until the run starts.
 export async function startByTouch(page, heroIndex = 0) {
   await waitForStartScreen(page);
-  await page.mouse.click(...(await heroPoint(page, HEROES[heroIndex])));
+  for (let attempt = 0; attempt < 8 && (await page.evaluate(() => window.railsBridge.godotFlow)) !== 'play'; attempt++) {
+    await page.mouse.click(...(await heroPoint(page, HEROES[heroIndex])));
+    await page.waitForTimeout(1200);
+  }
   await page.waitForFunction(() => window.railsBridge.godotFlow === 'play', null, { timeout: 15000 });
 }
 

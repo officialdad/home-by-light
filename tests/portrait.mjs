@@ -33,8 +33,14 @@ for (const [w, h] of SIZES) {
   await page.waitForFunction(() => window.railsBridge?.godotFlow === 'select', null, { timeout: 60000 });
   await page.waitForTimeout(1500);
   await check(page, 'select', w, h);
-  const card = (await page.evaluate(() => window.railsBridge.godotUiRects)).find((r) => r[0].startsWith('card:'));
-  await page.mouse.click(card[1] + card[3] / 2, card[2] + card[4] / 2);
+  // The first tap highlights a hero and the second confirms. The camera circles, so each tap reads the pill position again.
+  const tapCard = async () => {
+    const card = (await page.evaluate(() => window.railsBridge.godotUiRects)).find((r) => r[0].startsWith('card:'));
+    await page.mouse.click(card[1] + card[3] / 2, card[2] + card[4] / 2);
+  };
+  await tapCard();
+  await page.waitForTimeout(600);
+  await tapCard();
   await page.waitForFunction(() => window.railsBridge.godotFlow === 'play', null, { timeout: 8000 });
   await page.waitForTimeout(3000);
   await check(page, 'play', w, h);
