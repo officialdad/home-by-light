@@ -1,0 +1,10 @@
+build/
+cert/
+*.log
+*.zip
+.godot/
+node_modules/
+tests/*.png
+tests/tests/
+godot/audio_suno/
+godot/audio_candidates/
