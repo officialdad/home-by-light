@@ -18,6 +18,7 @@ const SWIPE_MAX_SECONDS: float = 0.5
 var _press_start: Vector2 = Vector2.ZERO
 var _press_time_msec: int = 0
 var _pressing: bool = false
+var _swiped_this_press: bool = false
 var _aim_point: Vector2 = Vector2(0.5, 0.5)
 var _aiming: bool = false
 var _firing: bool = false
@@ -30,6 +31,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_aim_point = event.position / viewport_size
 		_aiming = true
 		tracking_ok = true
+		_swipe_while_dragging(event.position, viewport_size)
 	elif event is InputEventMouseButton and event.device != InputEvent.DEVICE_ID_EMULATION:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			_aim_point = event.position / viewport_size
@@ -47,6 +49,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			pressed.emit(_aim_point)
 	elif event is InputEventScreenDrag:
 		_aim_point = event.position / viewport_size
+		_swipe_while_dragging(event.position, viewport_size)
 
 
 func get_slot_count() -> int:
@@ -65,6 +68,27 @@ func is_firing(_slot: int) -> bool:
 	return _firing
 
 
+## Steers the moment a fast drag passes the swipe distance, so the hero reacts while the finger is still moving instead of after it lifts.
+func _swipe_while_dragging(position: Vector2, viewport_size: Vector2) -> void:
+	if not _pressing or _swiped_this_press:
+		return
+	var seconds: float = float(Time.get_ticks_msec() - _press_time_msec) / 1000.0
+	if seconds > SWIPE_MAX_SECONDS:
+		return
+	var drag: Vector2 = (position - _press_start) / viewport_size.y
+	if drag.length() < SWIPE_MIN_SHARE:
+		return
+	_swiped_this_press = true
+	_emit_swipe(drag)
+
+
+func _emit_swipe(drag: Vector2) -> void:
+	if absf(drag.x) >= absf(drag.y):
+		swiped.emit(1 if drag.x > 0.0 else -1, 0)
+	else:
+		swiped.emit(0, 1 if drag.y > 0.0 else -1)
+
+
 ## Turns a short, fast press-drag-release into one swipe. Touch wins over emulated mouse, so a finger counts once.
 func _track_swipe(event: InputEvent, viewport_size: Vector2) -> void:
 	var is_touch: bool = event is InputEventScreenTouch
@@ -75,15 +99,15 @@ func _track_swipe(event: InputEvent, viewport_size: Vector2) -> void:
 		_press_start = event.position
 		_press_time_msec = Time.get_ticks_msec()
 		_pressing = true
+		_swiped_this_press = false
 		return
 	if not _pressing:
 		return
 	_pressing = false
+	if _swiped_this_press:
+		return
 	var seconds: float = float(Time.get_ticks_msec() - _press_time_msec) / 1000.0
 	var drag: Vector2 = (event.position - _press_start) / viewport_size.y
 	if seconds > SWIPE_MAX_SECONDS or drag.length() < SWIPE_MIN_SHARE:
 		return
-	if absf(drag.x) >= absf(drag.y):
-		swiped.emit(1 if drag.x > 0.0 else -1, 0)
-	else:
-		swiped.emit(0, 1 if drag.y > 0.0 else -1)
+	_emit_swipe(drag)
